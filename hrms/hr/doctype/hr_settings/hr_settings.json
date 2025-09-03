@@ -52,6 +52,7 @@
   "attendance_settings_section",
   "allow_employee_checkin_from_mobile_app",
   "allow_geolocation_tracking",
+  "allow_facial_recognition",
   "unlink_payment_section",
   "unlink_payment_on_cancellation_of_employee_advance"
  ],
@@ -345,13 +346,19 @@
    "fieldname": "prevent_self_expense_approval",
    "fieldtype": "Check",
    "label": "Prevent self approval for expense claims even if user has permissions"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_facial_recognition",
+   "fieldtype": "Check",
+   "label": "Allow Facial Recognition"
   }
  ],
  "icon": "fa fa-cog",
  "idx": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-07-28 10:37:35.977951",
+ "modified": "2025-09-04 00:07:43.367457",
  "modified_by": "Administrator",
  "module": "HR",
  "name": "HR Settings",

@@ -32,12 +32,14 @@
 		</div>
 	</div>
 
-	<ion-modal
+		<ion-modal
 		v-if="settings.data?.allow_employee_checkin_from_mobile_app"
 		ref="modal"
 		trigger="open-checkin-modal"
 		:initial-breakpoint="1"
 		:breakpoints="[0, 1]"
+			@didPresent="onModalDidPresent"
+			@willDismiss="onModalWillDismiss"
 	>
 		<div class="h-120 w-full flex flex-col items-center justify-center gap-5 p-4 mb-5">
 			<div class="flex flex-col gap-1.5 mt-2 items-center justify-center">
@@ -49,7 +51,15 @@
 				</div>
 			</div>
 
-			<template v-if="settings.data?.allow_geolocation_tracking">
+				<!-- Face Scan (optional UI only) -->
+						<FaceScan
+							v-if="isFacialEnabled"
+					ref="faceScan"
+					:height="170"
+					@captured="onFaceCaptured"
+				/>
+
+		<template v-if="settings.data?.allow_geolocation_tracking">
 				<span v-if="locationStatus" class="font-medium text-gray-500 text-sm">
 					{{ locationStatus }}
 				</span>
@@ -82,6 +92,7 @@ import { computed, inject, ref, onMounted, onBeforeUnmount } from "vue"
 import { IonModal, modalController } from "@ionic/vue"
 
 import { formatTimestamp } from "@/utils/formatters"
+import FaceScan from "@/components/FaceScan.vue"
 
 const DOCTYPE = "Employee Checkin"
 
@@ -93,9 +104,17 @@ const checkinTimestamp = ref(null)
 const latitude = ref(0)
 const longitude = ref(0)
 const locationStatus = ref("")
+const faceScan = ref(null)
+const faceBlob = ref(null)
 const settings = createResource({
 	url: "hrms.api.get_hr_settings",
 	auto: true,
+})
+
+// Normalize HR setting (can be 1/0 or "1"/"0" or true/false)
+const isFacialEnabled = computed(() => {
+	const v = settings.data?.allow_facial_recognition
+	return v === true || v === 1 || v === "1"
 })
 
 const checkins = createListResource({
@@ -207,4 +226,25 @@ onBeforeUnmount(() => {
 	socket.emit("doctype_unsubscribe", DOCTYPE)
 	socket.off("list_update")
 })
+
+// Modal lifecycle hooks to control camera
+function onModalDidPresent() {
+	// Start camera when modal opens
+	faceBlob.value = null
+	if (isFacialEnabled.value) {
+		faceScan.value?.start?.()
+	}
+}
+
+function onModalWillDismiss() {
+	// Stop camera when modal is closing
+	if (isFacialEnabled.value) {
+		faceScan.value?.stop?.()
+	}
+}
+
+function onFaceCaptured(blob) {
+	// Store for future use; not sent in check-in payload yet
+	faceBlob.value = blob
+}
 </script>
